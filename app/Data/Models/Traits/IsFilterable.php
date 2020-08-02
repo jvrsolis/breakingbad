@@ -3,9 +3,10 @@
 namespace BreakingBad\Data\Models\Traits;
 
 use Carbon\Carbon as Date;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
+use BreakingBad\Libraries\QueryFilter\QueryFilter;
 
 /**
  * Trait IsFilterable
@@ -107,14 +108,26 @@ trait IsFilterable
     }
 
     /**
-     * Scope using specified filters
+     * Filter a result set.
+     *
+     * @param Builder $query
+     *
+     * @return Builder
+     */
+    public function scopeFilter($query, QueryFilter $filters)
+    {
+        return $filters->apply($query);
+    }
+
+    /**
+     * Scope using specified generic column filters
      *
      * @param \Illuminate\Database\Eloquent\Builder $query   The query object to apply filters on.
      * @param  array|null  $filters  The filters to apply
      *
      * @return \Illuminate\Database\Eloquent\Builder $query  The resulting query after filters have been applied.
      */
-    public function scopeFilter(Builder $query, ?array $filters = null): Builder
+    public function scopeSearch(Builder $query, ?array $filters = null): Builder
     {
         $table = $this->getTable();
         if (!empty($filters)) {

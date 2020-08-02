@@ -2,6 +2,8 @@
 
 namespace BreakingBad\Data\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+
 /**
  * Class Character
  *
@@ -95,10 +97,10 @@ class Character extends Model
      *
      * @return Builder
      */
-    public function scopeSearch($query, $search)
+    public function scopeSearch(Builder $query, ?array $filters = null): Builder
     {
-        if (!empty($search)) {
-            foreach ($search as $key => $value) {
+        if (!empty($filters)) {
+            foreach ($filters as $key => $value) {
                 if ($value !== '') {
                     switch ($key) {
                         case 'show':
@@ -106,12 +108,12 @@ class Character extends Model
                             $query->whereHas('appearances', function($q) use ($key, $value) {
                                 $q->where($key, $value);
                             });
-                            unset($search[$key]);
+                            unset($filters[$key]);
                         break;
                     }
                 }
             }
         }
-        return $this->scopeFilter($query, $search);
+        return parent::scopeSearch($query, $filters);
     }
 }
