@@ -147,7 +147,7 @@ class CharacterLifecycle extends Lifecycle
      */
     public static function search(array $attributes, array $options = [])
     {
-        $query = Character::query()->search($attributes);
+        $query =
         if ($options !== []) {
             $query->orderBy($options['column'], $options['direction']);
         }

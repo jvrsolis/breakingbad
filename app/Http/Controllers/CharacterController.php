@@ -5,8 +5,9 @@ declare (strict_types=1);
 namespace BreakingBad\Http\Controllers;
 
 use Illuminate\Http\Request;
+use BreakingBad\Data\Models\Character;
+use BreakingBad\Libraries\Filter\Filtrate;
 use BreakingBad\Http\Resources\CharacterResource;
-use BreakingBad\Data\Lifecycle\CharacterLifecycle;
 
 /**
  * Class CharacterController
@@ -15,11 +16,9 @@ class CharacterController extends Controller
 {
     public function index(Request $request)
     {
-        $characters = CharacterLifecycle::search($request->only('status', 'portrayed', 'name'), [
-            'column' => $request->sortColumn ?? 'name',
-            'direction' => $request->sortDirection ?? 'ASC'
-        ])->paginate(10);
-
+        $characters = Filtrate::to(Character::class, 'list_characters')
+        ->orderBy($request->sortColumn ?? 'name', $request->sortDirection ?? 'asc')
+        ->paginate(10);
         return CharacterResource::collection($characters);
     }
 }

@@ -1,17 +1,19 @@
 <?php
 
-namespace BreakingBad\Libraries\QueryFilter;
+namespace BreakingBad\Libraries\Filter;
 
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use ReflectionMethod;
 use ReflectionParameter;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Support\Arrayable;
 
-abstract class QueryFilter implements Arrayable
+abstract class Filter implements Arrayable, AuthorizeWhenResolved
 {
+    use AuthorizeWhenResolvedTrait;
+
     /**
      * The request object.
      *
@@ -27,9 +29,9 @@ abstract class QueryFilter implements Arrayable
     protected $builder;
 
     /**
-     * Create a new QueryFilters instance.
+     * Create a new filters instance.
      */
-    public function __construct(Request $request)
+    public function __construct(?Request $request)
     {
         $this->request = $request;
     }
@@ -52,15 +54,17 @@ abstract class QueryFilter implements Arrayable
      *
      * @return Builder
      */
-    public function apply(Builder $builder)
+    public function apply(Builder $builder, $value = null)
     {
         $this->builder = $builder;
 
-        if (empty($this->filters()) && method_exists($this, 'default')) {
+        $filters = $value !== null ? $value : $this->filters();
+
+        if (empty($filters) && method_exists($this, 'default')) {
             \call_user_func([$this, 'default']);
         }
 
-        foreach ($this->filters() as $name => $value) {
+        foreach ($filters as $name => $value) {
             $methodName = Str::camel($name);
             $value      = array_filter([$value]);
             if ($this->shouldCall($methodName, $value)) {
